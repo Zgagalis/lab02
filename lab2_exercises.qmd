@@ -85,13 +85,13 @@ top_trees$treeID
 ```{r}
 # question 9
 smallest_trees_stand_3_2007 <- tree_data %>%
-  select(treeID, stand, year, rad_ib) %>%
-  filter(stand == 3, year == 2007) %>% 
+  select(treeID, standID, year, rad_ib) %>%
+  filter(standID == 3, year == 2007) %>% 
   slice_min(order_by = rad_ib, n = 3)
 
 smallest_trees_stand_3_2007
 
-# oh no
+# The smallest 3 trees are ID's 50, 56, and 36 in 2007
 
 ```
 
@@ -220,7 +220,49 @@ print(species_age_stats)
 ```
 
 
+```{r}
+# question 19
+year_summary <- tree_data %>% summarise(unique_years = n_distinct(year), first_year = min(year, na.rm = TRUE), last_year = max(year, na.rm = TRUE))
+print(year_summary)
 
+# 111 unique years with the earliest being 1897 and the most recent being 2007
+
+```
+
+```{r}
+# question 20
+stand_year_count <- tree_data %>% group_by(standID) %>% summarise(unique_years = n_distinct(year)) %>% ungroup()
+
+max_unique_years <- stand_year_count %>% summarise(max_years = max(unique_years)) %>% pull(max_years)
+
+stands_with_largest_record <- stand_year_count %>% filter(unique_years == max_unique_years)
+
+print(stands_with_largest_record)
+
+# stands 1, 15, 16, 17, and 24 have the largest numbers of unique years recorded
+
+```
+
+
+```{r}
+# final question
+temp <- tree_data  %>%
+  group_by(treeID) %>%
+  arrange(year) %>%
+  mutate(growth = DBH_cm - lag(DBH_cm),
+         total_years = n()) %>%
+  filter(!is.na(growth), total_years > 10) %>%
+  ungroup() %>%
+  group_by(species) %>% 
+  summarize(mean_growth = mean(growth))
+  
+
+slice_max(temp, mean_growth, n = 3)
+slice_min(temp, mean_growth, n = 3)
+
+# the tree with the fastest growth is QURU (northern red oak) with mean growth of 167.54cm
+  
+```
 
 
 
