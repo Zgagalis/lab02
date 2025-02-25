@@ -1,5 +1,226 @@
 ---
-title: "lab2_exercises"
+title: "Lab2.R"
+  author: Zoe
 format: html
-editor: visual
 ---
+
+
+```{r}
+# question 1
+
+library(tidyverse)
+tree_data <- read_csv("data/tree_dat.csv")
+glimpse(tree_data)
+# the data shows 131,386 rows and 8 columns
+# shows tree data variables including years, tree age, species, stand ID, etc.
+# data frame 
+```
+
+```{r}
+# question 2
+standID1_count <- tree_data %>% filter(standID == 1) %>% nrow()
+standID1_count
+# answer 979 records made in stand 1
+```
+
+```{r}
+# question 3 
+tree_data %>% 
+  filter(species %in% c("ABBA", "PIST")) %>% 
+  count(species)
+# ABBA records 13033
+# PIST records 4188
+# total records 17221
+```
+
+```{r}
+# question 4
+last_year <- max(tree_data$year, na.rm = TRUE)
+trees_older_than_200_last_year <- tree_data %>%
+  filter(year == last_year, age > 200)
+count_trees_older_than_200 <- nrow(trees_older_than_200_last_year)
+count_trees_older_than_200
+# In the last year of the data set, there are 7 trees older than 200 years
+
+```
+
+```{r}
+# question 5
+oldest_tree <- tree_data %>%
+  slice_max(order_by = age, n = 1)
+oldest_tree
+# using slice_max, the oldest tree is ID 24, stand ID 2, stand A2, 2007, age 269
+```
+
+```{r}
+# question 6
+top5_oldest_trees <- tree_data %>%
+  slice_max(order_by = age, n = 5)
+top5_oldest_trees
+# This shows the top 6 oldest trees because 2 of them are tied for 265 years old
+```
+
+```{r}
+# question 7
+sample_30_percent_2002 <- tree_data %>%
+  filter(year == 2002) %>%
+  slice_sample(prop = 0.3)
+num_trees_in_sample <- nrow(sample_30_percent_2002)
+num_trees_in_sample
+# there are 687 trees in a 30% sample for 2002
+```
+
+```{r}
+# question 8
+top_trees <- tree_data %>%
+filter(standID == 5, year == 2007) %>%
+    arrange(desc(rad_ib)) %>%
+    slice_head(n = 3)
+
+top_trees$treeID
+
+# tree ID's 128, 157, 135
+```
+
+```{r}
+# question 9
+smallest_trees_stand_3_2007 <- tree_data %>%
+  select(treeID, stand, year, rad_ib) %>%
+  filter(stand == 3, year == 2007) %>% 
+  slice_min(order_by = rad_ib, n = 3)
+
+smallest_trees_stand_3_2007
+
+# oh no
+
+```
+
+```{r}
+# question 10
+reduced_data <- tree_data %>%
+ select(-stand)
+
+glimpse(reduced_data)
+
+# data set after removing "stand" column
+
+```
+
+```{r}
+# question 11
+tree_id_mod <- tree_data %>% select(matches("ID"))
+glimpse(tree_id_mod)
+
+# remaining data set
+
+```
+
+```{r}
+# question 12
+selected_data <- tree_data %>%
+  select(matches("ID|stand"))
+
+glimpse(selected_data)
+
+# this shows columns "treeID," "standID," and "stand"
+
+```
+
+```{r}
+# question 13
+renamed_data <- tree_data %>%
+  rename(rad_ib_mm = rad_ib,
+    inc_mm = inc)
+  
+glimpse(renamed_data)
+
+
+# glimpse shows new data set revealing units in some columns
+
+```
+
+
+
+```{r}
+# question 14
+
+meanBA <- tree_data %>%
+  mutate(DBH_cm = 2 * rad_ib/10, BA_m2 = 0.00007854 * DBH_cm^2) %>%
+  filter(species == "POTR", year == 2007) %>%
+  summarize(mean_BA = mean(BA_m2, na.rm = TRUE))
+
+meanBA
+
+
+# the mean BA in m^2 is 0.03696619 in 2007
+
+```
+
+```{r}
+# question 15
+
+established_counts <- tree_data %>%
+  mutate(established = if_else(age > 5, TRUE, FALSE)) %>%
+  count(established)
+
+established_counts
+
+# 122503 trees are established 
+
+```
+
+```{r}
+# question 16
+tree_data %>%
+  mutate(
+    DBH_cm = 2 * rad_ib * 100,  
+    DBH_class = case_when(
+      DBH_cm < 2.5 ~ "seedling", 
+      DBH_cm >= 2.5 & DBH_cm < 10 ~ "sapling",  
+      DBH_cm >= 10 & DBH_cm < 30 ~ "pole", 
+      DBH_cm >= 30 ~ "sawlog" 
+    )
+  ) %>%
+  filter(year == 2007) %>%  
+  count(DBH_class)  
+
+# For 2007, the sawlog class had a count of 2291
+
+```
+
+```{r}
+# question 17
+tree_data <- tree_data %>%
+  mutate(DBH_cm = 2 * rad_ib * 100) 
+
+tree_data %>% 
+  filter(year == 2007) %>%  # Filter for the year 2007
+  summarize(
+    mean_DBH = mean(DBH_cm, na.rm = TRUE),  
+    sd_DBH = sd(DBH_cm, na.rm = TRUE)      
+  )
+
+# The mean DBH indicates the average tree size in 2007, also possibly  indicating age
+# The standard deviation indicates shows the range in size of tree, showing which ones are
+   # significantly larger or smaller than the average
+
+```
+
+```{r}
+# question 18
+tree_dat_2003 <- tree_data %>% filter(year ==2003)
+species_age_stats <- tree_dat_2003 %>% group_by(species) %>%
+  summarise(mean_age = mean(age, na.rm = TRUE)) %>% arrange(desc(mean_age))
+species_age_stats %>% top_n(3, mean_age)
+print(species_age_stats)
+
+# The 3 species with the oldest mean tree age are (abbreviated) THOC, FRNI, and PIST. 
+# The mean age of THOC is significantly older than the other species, at 126.64
+
+```
+
+
+
+
+
+
